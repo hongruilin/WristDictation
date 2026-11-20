@@ -14,7 +14,7 @@ iPhone 负责编词库，Apple Watch 负责**完全离线**地把词念出来。
 
 2026 年，我在工厂上班。车间不许带手机，手机得锁在柜子里。
 
-同一时间我在准备自考的「大学语文」。这门课的默写要求在短时间内过完中国 3500 个常用字——不是认得，是能写出来。唯一可行的办法是让耳朵反复听，手上跟着写。
+同一时间我也在准备自考的「大学语文」。长年用拼音输入法打字，提笔忘字已经很严重了，而这门考试里有不少要动笔写字的地方，作文就是其中一个。所以我得在短时间内把中国 3500 个常用字练到能默写出来——不是认得，是能写出来。唯一可行的办法是让耳朵反复听，手上跟着写。
 
 我把应用商店翻了一遍，没有能用的：
 
@@ -28,7 +28,7 @@ iPhone 负责编词库，Apple Watch 负责**完全离线**地把词念出来。
 
 市面上没有，那就自己写一个。
 
-**腕上听写**不是背单词软件。它是一台只会念词的复读机：手机是编辑器，手表是播放器，二者之间只传一次数据，之后手表自己活。
+**腕上听写**不是背单词软件。它是一台只会念词的复读机：手机是编辑器，手表是播放器；平时不传数据，只有手机改了什么才同步一次，之后手表自己活。
 
 ---
 
@@ -360,7 +360,7 @@ python3 Tools/gen_project.py
 
 **WristDictation** is an offline dictation trainer for Apple Watch. You build word lists on the iPhone; the watch plays them back entirely on its own — no phone, no network, no screen-watching.
 
-It exists because its author worked in a factory where phones were forbidden, while preparing for a self-study exam that required writing 3,500 common Chinese characters from memory. Nothing in the App Store did "repeat each word N times, wait M seconds, keep playing on my wrist with the screen off."
+It exists because its author worked in a factory where phones were forbidden. Years of typing with pinyin input had left him unable to recall how to write common characters by hand — and a self-study Chinese exam (大学语文) ahead of him required writing, including an essay. So all 3,500 common characters had to be drilled back into handwriting in a short time. Nothing in the App Store did "repeat each word N times, wait M seconds, keep playing on my wrist with the screen off."
 
 Pure Swift / SwiftUI, no dependencies. iOS 17+ / watchOS 10+. Requires a real device — the headphone remote, double-tap gesture, and TTS routing cannot be validated in the simulator.
 
