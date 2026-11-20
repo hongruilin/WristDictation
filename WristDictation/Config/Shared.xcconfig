@@ -1,0 +1,21 @@
+// ============================================================
+// 签名与标识配置
+// 改这一个文件即可，两个 Target 都会跟着变。
+// ============================================================
+
+// ⚠️ **使用前必须改这里**：把 yourname 换成你自己的名字或昵称。
+// Watch App 会自动使用 <APP_BUNDLE_ID>.watchkitapp，不用另配。
+//
+// 注意：**不要用 com.example.*** —— example.com 是保留域名，
+// Apple Developer 后台注册 App ID 会被拒。
+// 安全写法：com.<你的名字>.wristdictation
+// 或者用自己域名的反写：cn.<你的域名>.wristdictation
+APP_BUNDLE_ID = com.yourname.wristdictation
+
+// 你的 Apple Developer Team ID（10 位，如 A1B2C3D4E5）。
+// 留空 → 用 Xcode 打开工程，在 Signing & Capabilities 里选一次团队即可。
+// 想走命令行又不想改仓库，用一个环境变量传进来：
+//     WD_TEAM_ID=ABCDE12345 python3 Tools/gen_project.py
+DEVELOPMENT_TEAM =
+
+CODE_SIGN_STYLE = Automatic

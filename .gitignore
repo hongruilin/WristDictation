@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+
+# 签名与打包产物
+*.ipa
+*.mobileprovision
+*.p12
+*.cer
+*.dSYM
+*.dSYM.zip
+
+# 日志
+*.log
+run.log
+run.1.log
+
+# Swift Package Manager
+.swiftpm/
+.build/
+
+# 临时
+*.swp
+*~

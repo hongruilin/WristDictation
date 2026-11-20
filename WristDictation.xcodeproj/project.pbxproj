@@ -1,0 +1,528 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B67E1CBE00034CE71EBC15A9 /* WristDictationApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7735C894FCF9A8CEB0538D9 /* WristDictationApp.swift */; };
+		5BF460B8ADC32F3E2903D687 /* IOSStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EE2618C77DB9093E11AF959 /* IOSStore.swift */; };
+		36EB9AD13B964CFD85FE227F /* LibraryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DECE936B3C0202CEE699DF /* LibraryListView.swift */; };
+		1FCBC5010DABDBE94E09022F /* DictionaryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 290F60124AAC81CC820BD96D /* DictionaryDetailView.swift */; };
+		EDEDFF7284304D7168382115 /* WordEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04DEB328EE6AE3E18B394EF6 /* WordEditorView.swift */; };
+		609E7C75F7CCD957305AB17C /* LibrarySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2C18AD240012BC069E299BF /* LibrarySettingsView.swift */; };
+		589C3D0D6D515A3A2E90434C /* ImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02C93A9EEBD1CEF207221877 /* ImportSheet.swift */; };
+		3848FA099A0F8A8432467171 /* SyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A5C18FC598ED58C2CFC11ED /* SyncView.swift */; };
+		3FCB991A71DC7DD2839502C3 /* PhoneRemoteBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = E066A3624BC9E8CC62D4EFF8 /* PhoneRemoteBridge.swift */; };
+		2F1F7DEEC9AF1C37112E7921 /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C744B84FAA8CE0AA7596F76 /* AppLog.swift */; };
+		3CBF3D3A3FB0D9C76C7858AF /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02BC48EC1EE037DCB9E5B6BC /* Models.swift */; };
+		5C16F5C14BA31D9D133A2FF3 /* Parameters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 041D7A2BD590B2D03D144F00 /* Parameters.swift */; };
+		D4784357D200BCEA5D87CEBD /* DictionaryIO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04BCD361319B5E18997DF983 /* DictionaryIO.swift */; };
+		C5FDA2D653F737AEA4A21B6B /* SyncPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7CF29A53679D613DCCE2BDC /* SyncPayload.swift */; };
+		4FEB65E6C9786A6897C6AAA3 /* WristDictationWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A6630695ED90C87397D9E27 /* WristDictationWatchApp.swift */; };
+		DD6FDAE581082F455F023563 /* WatchStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACED60EF43AF5BF547C7B46 /* WatchStore.swift */; };
+		D25D72C8D616562A9C1236BD /* WatchSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB22038E66E2BA5505E5B5CF /* WatchSyncManager.swift */; };
+		F3434CDBA8BD20A903076E66 /* SpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02FB989550CEC3F245062460 /* SpeechService.swift */; };
+		E830462FC853F2CCEED7BA78 /* AudioSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B566368AC63EC9157D9563A9 /* AudioSessionController.swift */; };
+		D093309703E4112BE351A94A /* RemoteCommandBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C980AF25B84352E216657972 /* RemoteCommandBridge.swift */; };
+		A885F5938DC52D11A4319D04 /* PlaybackStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6D86D35C2B988001F4BFB59 /* PlaybackStateStore.swift */; };
+		E9CF68452CD1515E43FF9D39 /* DictationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B380320E27D500C84B2E9A0 /* DictationEngine.swift */; };
+		46A68AC1BDBBE5F5C5D642DE /* WatchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C344B68F922FC69EBC28F844 /* WatchHomeView.swift */; };
+		CA02FD2FDF8D8FD93CC1C005 /* DictationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7514CD301678A40D675891C /* DictationView.swift */; };
+		725C8A7AC616CCD3F79182A1 /* AnswerSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28BE3A6AB7752E6052EEC0D /* AnswerSheetView.swift */; };
+		C0BD1585A71D7E24CDE58C6D /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C744B84FAA8CE0AA7596F76 /* AppLog.swift */; };
+		510BF36EB6558C16918A6FE1 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02BC48EC1EE037DCB9E5B6BC /* Models.swift */; };
+		B684666E14DADFBBA0CC8171 /* Parameters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 041D7A2BD590B2D03D144F00 /* Parameters.swift */; };
+		202F78DD80A544ADE2ACBB24 /* DictionaryIO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04BCD361319B5E18997DF983 /* DictionaryIO.swift */; };
+		A8AC180FC417BB521BC4F126 /* SyncPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7CF29A53679D613DCCE2BDC /* SyncPayload.swift */; };
+		1F3E56FA3903FC4520663A0A /* WristDictationWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = F4E06BDFE22D32A32441ABBE /* WristDictationWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		9ADCF2CAED6C30B3F5D185AB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 361B7D4D928FEE083F87C595;
+			remoteInfo = "WristDictationWatch";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		6C0DE7383EF067C05FE54CE3 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				1F3E56FA3903FC4520663A0A /* WristDictationWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		52A1883A7F01CBEB0C3E7A2D /* WristDictation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WristDictation.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F4E06BDFE22D32A32441ABBE /* WristDictationWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WristDictationWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7C744B84FAA8CE0AA7596F76 /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
+		02BC48EC1EE037DCB9E5B6BC /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		041D7A2BD590B2D03D144F00 /* Parameters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Parameters.swift; sourceTree = "<group>"; };
+		04BCD361319B5E18997DF983 /* DictionaryIO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictionaryIO.swift; sourceTree = "<group>"; };
+		C7CF29A53679D613DCCE2BDC /* SyncPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncPayload.swift; sourceTree = "<group>"; };
+		E7735C894FCF9A8CEB0538D9 /* WristDictationApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WristDictationApp.swift; sourceTree = "<group>"; };
+		3EE2618C77DB9093E11AF959 /* IOSStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSStore.swift; sourceTree = "<group>"; };
+		99DECE936B3C0202CEE699DF /* LibraryListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryListView.swift; sourceTree = "<group>"; };
+		290F60124AAC81CC820BD96D /* DictionaryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictionaryDetailView.swift; sourceTree = "<group>"; };
+		04DEB328EE6AE3E18B394EF6 /* WordEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordEditorView.swift; sourceTree = "<group>"; };
+		C2C18AD240012BC069E299BF /* LibrarySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySettingsView.swift; sourceTree = "<group>"; };
+		02C93A9EEBD1CEF207221877 /* ImportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportSheet.swift; sourceTree = "<group>"; };
+		3A5C18FC598ED58C2CFC11ED /* SyncView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncView.swift; sourceTree = "<group>"; };
+		E066A3624BC9E8CC62D4EFF8 /* PhoneRemoteBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneRemoteBridge.swift; sourceTree = "<group>"; };
+		5A6630695ED90C87397D9E27 /* WristDictationWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WristDictationWatchApp.swift; sourceTree = "<group>"; };
+		6ACED60EF43AF5BF547C7B46 /* WatchStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchStore.swift; sourceTree = "<group>"; };
+		FB22038E66E2BA5505E5B5CF /* WatchSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSyncManager.swift; sourceTree = "<group>"; };
+		02FB989550CEC3F245062460 /* SpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechService.swift; sourceTree = "<group>"; };
+		B566368AC63EC9157D9563A9 /* AudioSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionController.swift; sourceTree = "<group>"; };
+		C980AF25B84352E216657972 /* RemoteCommandBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCommandBridge.swift; sourceTree = "<group>"; };
+		C6D86D35C2B988001F4BFB59 /* PlaybackStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackStateStore.swift; sourceTree = "<group>"; };
+		7B380320E27D500C84B2E9A0 /* DictationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationEngine.swift; sourceTree = "<group>"; };
+		C344B68F922FC69EBC28F844 /* WatchHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchHomeView.swift; sourceTree = "<group>"; };
+		C7514CD301678A40D675891C /* DictationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationView.swift; sourceTree = "<group>"; };
+		B28BE3A6AB7752E6052EEC0D /* AnswerSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnswerSheetView.swift; sourceTree = "<group>"; };
+		7514D8840598FE686EE1772A /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
+		C10CBBF1D06C1A476A6512AA /* iOS-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "iOS-Info.plist"; sourceTree = "<group>"; };
+		4A62675A04B37C202E92F68E /* Watch-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Watch-Info.plist"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8F945CA2C129C2C2A2BCA996 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0F1DC2FF14A45FBF78CFDBDF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		8D3FC6DB5D0827F168A73277 /* Main */ = {
+			isa = PBXGroup;
+			children = (
+				D236FE8BF1D4779E8CA80529 /* Shared */,
+				770FB3B113F857549B0F21C3 /* iOS */,
+				93539FE562B72F8FDF91A03D /* Watch */,
+				7173545D75AC56744F55E81B /* Config */,
+				1BADDC1D73C1A20F347483E1 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1BADDC1D73C1A20F347483E1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				52A1883A7F01CBEB0C3E7A2D /* WristDictation.app */,
+				F4E06BDFE22D32A32441ABBE /* WristDictationWatch.app */,
+			);
+			sourceTree = "<group>";
+		};
+		D236FE8BF1D4779E8CA80529 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				7C744B84FAA8CE0AA7596F76 /* AppLog.swift */,
+				02BC48EC1EE037DCB9E5B6BC /* Models.swift */,
+				041D7A2BD590B2D03D144F00 /* Parameters.swift */,
+				04BCD361319B5E18997DF983 /* DictionaryIO.swift */,
+				C7CF29A53679D613DCCE2BDC /* SyncPayload.swift */,
+			);
+			path = WristDictation/Shared;
+			sourceTree = "<group>";
+		};
+		770FB3B113F857549B0F21C3 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				E7735C894FCF9A8CEB0538D9 /* WristDictationApp.swift */,
+				3EE2618C77DB9093E11AF959 /* IOSStore.swift */,
+				99DECE936B3C0202CEE699DF /* LibraryListView.swift */,
+				290F60124AAC81CC820BD96D /* DictionaryDetailView.swift */,
+				04DEB328EE6AE3E18B394EF6 /* WordEditorView.swift */,
+				C2C18AD240012BC069E299BF /* LibrarySettingsView.swift */,
+				02C93A9EEBD1CEF207221877 /* ImportSheet.swift */,
+				3A5C18FC598ED58C2CFC11ED /* SyncView.swift */,
+				E066A3624BC9E8CC62D4EFF8 /* PhoneRemoteBridge.swift */,
+			);
+			path = WristDictation/iOS;
+			sourceTree = "<group>";
+		};
+		93539FE562B72F8FDF91A03D /* Watch */ = {
+			isa = PBXGroup;
+			children = (
+				5A6630695ED90C87397D9E27 /* WristDictationWatchApp.swift */,
+				6ACED60EF43AF5BF547C7B46 /* WatchStore.swift */,
+				FB22038E66E2BA5505E5B5CF /* WatchSyncManager.swift */,
+				02FB989550CEC3F245062460 /* SpeechService.swift */,
+				B566368AC63EC9157D9563A9 /* AudioSessionController.swift */,
+				C980AF25B84352E216657972 /* RemoteCommandBridge.swift */,
+				C6D86D35C2B988001F4BFB59 /* PlaybackStateStore.swift */,
+				7B380320E27D500C84B2E9A0 /* DictationEngine.swift */,
+				C344B68F922FC69EBC28F844 /* WatchHomeView.swift */,
+				C7514CD301678A40D675891C /* DictationView.swift */,
+				B28BE3A6AB7752E6052EEC0D /* AnswerSheetView.swift */,
+			);
+			path = WristDictation/Watch;
+			sourceTree = "<group>";
+		};
+		7173545D75AC56744F55E81B /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				7514D8840598FE686EE1772A /* Shared.xcconfig */,
+				C10CBBF1D06C1A476A6512AA /* iOS-Info.plist */,
+				4A62675A04B37C202E92F68E /* Watch-Info.plist */,
+			);
+			path = WristDictation/Config;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AF4DD625E8AA25633A67D6D9 /* WristDictation */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F003238554B91B0D08441A6F /* Build configuration list for PBXNativeTarget "WristDictation" */;
+			buildPhases = (
+				B1231F01F7B6BF2459AC6541 /* Sources */,
+				8F945CA2C129C2C2A2BCA996 /* Frameworks */,
+				04FAC48F058CD25DAADB9131 /* Resources */,
+				6C0DE7383EF067C05FE54CE3 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DF3575B5C9D659900C6E1FD1 /* PBXTargetDependency */,
+			);
+			name = WristDictation;
+			productName = WristDictation;
+			productReference = 52A1883A7F01CBEB0C3E7A2D /* WristDictation.app */;
+			productType = "com.apple.product-type.application";
+		};
+		361B7D4D928FEE083F87C595 /* WristDictationWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 821E04E5702FFBFF49876B86 /* Build configuration list for PBXNativeTarget "WristDictationWatch" */;
+			buildPhases = (
+				20179E75B0E9400620538D72 /* Sources */,
+				0F1DC2FF14A45FBF78CFDBDF /* Frameworks */,
+				3C2C5EEA477D7EF260EF0631 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WristDictationWatch;
+			productName = WristDictationWatch;
+			productReference = F4E06BDFE22D32A32441ABBE /* WristDictationWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		46F86FAA6BBF9AC94A7E4595 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					AF4DD625E8AA25633A67D6D9 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					361B7D4D928FEE083F87C595 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+				};
+			};
+			buildConfigurationList = 56283EBD6DD86A56CED63937 /* Build configuration list for PBXProject "WristDictation" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				"zh-Hans",
+				en,
+				Base,
+			);
+			mainGroup = 8D3FC6DB5D0827F168A73277;
+			productRefGroup = 1BADDC1D73C1A20F347483E1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AF4DD625E8AA25633A67D6D9 /* WristDictation */,
+				361B7D4D928FEE083F87C595 /* WristDictationWatch */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		04FAC48F058CD25DAADB9131 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3C2C5EEA477D7EF260EF0631 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B1231F01F7B6BF2459AC6541 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B67E1CBE00034CE71EBC15A9 /* WristDictationApp.swift in Sources */,
+				5BF460B8ADC32F3E2903D687 /* IOSStore.swift in Sources */,
+				36EB9AD13B964CFD85FE227F /* LibraryListView.swift in Sources */,
+				1FCBC5010DABDBE94E09022F /* DictionaryDetailView.swift in Sources */,
+				EDEDFF7284304D7168382115 /* WordEditorView.swift in Sources */,
+				609E7C75F7CCD957305AB17C /* LibrarySettingsView.swift in Sources */,
+				589C3D0D6D515A3A2E90434C /* ImportSheet.swift in Sources */,
+				3848FA099A0F8A8432467171 /* SyncView.swift in Sources */,
+				3FCB991A71DC7DD2839502C3 /* PhoneRemoteBridge.swift in Sources */,
+				2F1F7DEEC9AF1C37112E7921 /* AppLog.swift in Sources */,
+				3CBF3D3A3FB0D9C76C7858AF /* Models.swift in Sources */,
+				5C16F5C14BA31D9D133A2FF3 /* Parameters.swift in Sources */,
+				D4784357D200BCEA5D87CEBD /* DictionaryIO.swift in Sources */,
+				C5FDA2D653F737AEA4A21B6B /* SyncPayload.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		20179E75B0E9400620538D72 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4FEB65E6C9786A6897C6AAA3 /* WristDictationWatchApp.swift in Sources */,
+				DD6FDAE581082F455F023563 /* WatchStore.swift in Sources */,
+				D25D72C8D616562A9C1236BD /* WatchSyncManager.swift in Sources */,
+				F3434CDBA8BD20A903076E66 /* SpeechService.swift in Sources */,
+				E830462FC853F2CCEED7BA78 /* AudioSessionController.swift in Sources */,
+				D093309703E4112BE351A94A /* RemoteCommandBridge.swift in Sources */,
+				A885F5938DC52D11A4319D04 /* PlaybackStateStore.swift in Sources */,
+				E9CF68452CD1515E43FF9D39 /* DictationEngine.swift in Sources */,
+				46A68AC1BDBBE5F5C5D642DE /* WatchHomeView.swift in Sources */,
+				CA02FD2FDF8D8FD93CC1C005 /* DictationView.swift in Sources */,
+				725C8A7AC616CCD3F79182A1 /* AnswerSheetView.swift in Sources */,
+				C0BD1585A71D7E24CDE58C6D /* AppLog.swift in Sources */,
+				510BF36EB6558C16918A6FE1 /* Models.swift in Sources */,
+				B684666E14DADFBBA0CC8171 /* Parameters.swift in Sources */,
+				202F78DD80A544ADE2ACBB24 /* DictionaryIO.swift in Sources */,
+				A8AC180FC417BB521BC4F126 /* SyncPayload.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DF3575B5C9D659900C6E1FD1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 361B7D4D928FEE083F87C595 /* WristDictationWatch */;
+			targetProxy = 9ADCF2CAED6C30B3F5D185AB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		FA9139DD8B03E3F922556BF8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				SWIFT_VERSION = 5.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		FFE2104CCFAB79205AC64460 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				SWIFT_VERSION = 5.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		C68D4F0AA3EE307926006C81 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7514D8840598FE686EE1772A /* Shared.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 16;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WristDictation/Config/iOS-Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -disable-sandbox";
+				MARKETING_VERSION = 1.6.6;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BD6069C3C0934E561A21BCB1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7514D8840598FE686EE1772A /* Shared.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 16;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WristDictation/Config/iOS-Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -disable-sandbox";
+				MARKETING_VERSION = 1.6.6;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		6FBD51DB18231ABFF2CDD9BA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7514D8840598FE686EE1772A /* Shared.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 16;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WristDictation/Config/Watch-Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -disable-sandbox";
+				MARKETING_VERSION = 1.6.6;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID).watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BB715A6C1D164219EF385BF0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7514D8840598FE686EE1772A /* Shared.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 16;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WristDictation/Config/Watch-Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -disable-sandbox";
+				MARKETING_VERSION = 1.6.6;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID).watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		56283EBD6DD86A56CED63937 /* Build configuration list for PBXProject "WristDictation" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FA9139DD8B03E3F922556BF8 /* Debug */,
+				FFE2104CCFAB79205AC64460 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F003238554B91B0D08441A6F /* Build configuration list for PBXNativeTarget "WristDictation" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C68D4F0AA3EE307926006C81 /* Debug */,
+				BD6069C3C0934E561A21BCB1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		821E04E5702FFBFF49876B86 /* Build configuration list for PBXNativeTarget "WristDictationWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6FBD51DB18231ABFF2CDD9BA /* Debug */,
+				BB715A6C1D164219EF385BF0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+}
