@@ -33,6 +33,9 @@ final class AudioSessionController: NSObject {
     /// 卡顿到被 watchdog 盯上。
     private var sessionActive = false
     private var interruptionObserver: NSObjectProtocol?
+    /// 路由变化单独观察。打断通知里看不出"是不是耳机掉了/切到扬声器"，
+    /// 而这两件事在手表上足以让一次播报静音。
+    private var routeObserver: NSObjectProtocol?
 
     /// 连续多少次"设激活"彻底失败。用来做两件事：
     /// ① 指数退避，别让 0.2 秒的 ticker 每秒撞五次系统；
@@ -49,9 +52,79 @@ final class AudioSessionController: NSObject {
     private var keepAliveFailures = 0
     private var nextKeepAliveAttemptAt = Date.distantPast
 
+    /// 兼容模式：彻底放弃本 App 的音频会话，让合成器自带会话发声。
+    ///
+    /// 代价是失去 Now Playing、耳机键失效，换回来的是"真的有声音"。
+    /// 启用后本类不再尝试任何 `setActive`、也不再建静音轨。
+    private var compatMode = false
+    var isCompatibilityMode: Bool { compatMode }
+
+    // MARK: 播放引擎偏好
+
+    /// 是否优先让合成器用自己的会话发声（即"兼容模式"）。
+    ///
+    /// **默认 true**。这不是保守的兜底，而是 2026-11-25 三次冷启动实测的结论——
+    /// 三轮曲线一模一样，与操作无关：
+    /// ```
+    /// audio.activate ok route=Speaker
+    /// audio.keepalive start ok=true / probe playing=true t=0.47
+    /// +1.2s  audio.interruption began reason=0 other=false route=Speaker
+    /// +10s   audio.reactivate failed code=561145203
+    ///        audio.hardReset failed code=561145203   ← 硬重置也救不回来
+    /// ```
+    /// `-561145203` 就是 `!res`（资源不可用）。换句话说：`setActive(true)` 报成功是
+    /// 假的，会话从没真正拿到输出路由；静音轨的 `currentTime` 照样在走（它跑在自己的
+    /// 时钟上），TTS 也照样 `didStart`/走完内部时长——但一个字节都没送到扬声器。
+    /// 而同一台设备、同一时刻切到兼容模式，`didStart`/`didFinish` 立刻成对出现。
+    ///
+    /// 所以"自有会话 + 静音保活轨"这条路在这台手表上已经被系统判死，App 侧
+    /// 无论怎么重试、重置都拿不回来。默认必须走兼容模式，否则新用户第一次
+    /// 用就是"有进度、没声音"。
+    ///
+    /// 手表设置里留了开关（「后台保活」），需要耳机键的用户可以打开去试——
+    /// 万一某次系统重启后会话恢复了，那条路还是能用的。
+    static let compatibilityKey = "wd.audio.compatibilityPreferred"
+
+    static var prefersCompatibility: Bool {
+        get {
+            // 键不存在（全新安装 / 老版本升级）一律 true：默认先保证听得见。
+            (UserDefaults.standard.object(forKey: compatibilityKey) as? Bool) ?? true
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: compatibilityKey)
+            AppLog.log("audio.prefersCompatibility=\(newValue ? "compat" : "main")")
+        }
+    }
+
     /// 连续激活失败达到阈值时回调。引擎会暂停并提示用户，
     /// **绝不静默把整个词库播完**——那是最难排查的一种失败。
     var onPersistentActivationFailure: (() -> Void)?
+
+    /// 自有会话刚建立就被系统收走（或耳机掉了）时回调，**只报一次**。
+    ///
+    /// 存在的理由：`-561145203`（`!res`，硬件音频资源不足）出现后，
+    /// 等它攒够 3 次失败 + 指数退避要走 10~30 秒，用户感受就是
+    /// "第一个词没声音，得手动推好几个词才自动切过去"。
+    /// 既然第一次打断就已经说明这条路不通，就该当场降级、当场重播这个词。
+    var onSessionLost: (() -> Void)?
+    /// 本次会话建立后是否已经报过 `onSessionLost`，避免几十条打断通知刷爆回调。
+    private var reportedSessionLost = false
+
+    /// 这一轮该不该用自有会话（主模式）。
+    ///
+    /// 三条规则，按优先级：
+    /// 1. 用户在设置里打开「后台保活」→ 用主模式（他知情，愿意赌一次）。
+    /// 2. **当前有耳机** → 用主模式。耳机键只在戴耳机时才有意义，而 A2DP 路由的
+    ///    音频单元配置和扬声器完全不同——历史上耳机下这套是能工作的。
+    /// 3. 外放 → 兼容模式。外放时耳机键本来就没用，没理由为了它牺牲声音。
+    ///
+    /// 这是 2026-11-25 的关键判断：`!res` 不是"权限被撤销"，而是"硬件音频资源
+    /// 不足"。主模式下我们有静音轨、合成器也要开口，**两个音频消费者抢同一个
+    /// 单元**；外放路由下音频单元只有一条，抢不到就 `!res`。耳机（A2DP）是独立
+    /// 链路，两个消费者能共存。
+    var shouldUseMainSession: Bool {
+        !Self.prefersCompatibility || isHeadphoneRoute
+    }
 
     var isRuntimeActive: Bool {
         runtimeSession?.state == .running
@@ -61,12 +134,25 @@ final class AudioSessionController: NSObject {
         if let interruptionObserver {
             NotificationCenter.default.removeObserver(interruptionObserver)
         }
+        if let routeObserver {
+            NotificationCenter.default.removeObserver(routeObserver)
+        }
     }
 
     // MARK: 音频会话
 
     func activate() {
+        // 兼容模式下不再碰会话：合成器用自己的，谁先 setActive 谁把对方顶掉。
+        guard !compatMode else { return }
         observeInterruption()
+        // 外放 + 没强制要后台保活 → 连 setCategory / setActive / 静音轨都不做。
+        // 只要本 App 去申请会话，这台手表就会在 1~10 秒内把它判死（见
+        // compatibilityKey 的注释），然后 TTS 全程无声。
+        guard shouldUseMainSession else {
+            enterCompatibilityMode(reason: "speaker")
+            AppLog.log("audio.activate skipped（外放，走兼容模式）")
+            return
+        }
         let session = AVAudioSession.sharedInstance()
         do {
             // 不能用 .duckOthers：SDK 明写 "Setting this option will also make your
@@ -78,8 +164,10 @@ final class AudioSessionController: NSObject {
             sessionActive = true
             activationFailures = 0
             nextActivationAttemptAt = .distantPast
+            reportedSessionLost = false
             let opts = session.categoryOptions.rawValue
-            AppLog.log("audio.activate ok route=\(routeDescription) options=\(opts)")
+            AppLog.log("audio.activate ok route=\(routeDescription) options=\(opts) "
+                       + "headphone=\(isHeadphoneRoute)")
         } catch let error as NSError {
             sessionActive = false
             registerActivationFailure(error, phase: "activate")
@@ -94,7 +182,10 @@ final class AudioSessionController: NSObject {
         let delay = min(30.0, pow(2.0, Double(activationFailures)))
         nextActivationAttemptAt = Date().addingTimeInterval(delay)
         AppLog.log("audio.\(phase) failed code=\(error.code) domain=\(error.domain) "
-                   + "count=\(activationFailures) retryIn=\(Int(delay))s")
+                   + "count=\(activationFailures) retryIn=\(Int(delay))s "
+                   + "other=\(AVAudioSession.sharedInstance().isOtherAudioPlaying) "
+                   + "vol=\(String(format: "%.2f", AVAudioSession.sharedInstance().outputVolume)) "
+                   + "route=\(routeDescription)")
         // 每满 3 次提醒一回：用户已经暂停过、又重新开始时，还有机会再被拦一次。
         if activationFailures >= 3, activationFailures % 3 == 0 {
             onPersistentActivationFailure?()
@@ -103,6 +194,9 @@ final class AudioSessionController: NSObject {
 
     func deactivate() {
         stopSilentKeepAlive()
+        // 兼容模式下会话从来没归我们管，别去动它——一句多余的 setActive(false)
+        // 会打断合成器正在用的那个自带会话。
+        guard !compatMode else { return }
         let session = AVAudioSession.sharedInstance()
         try? session.setActive(false, options: [.notifyOthersOnDeactivation])
         sessionActive = false
@@ -120,6 +214,7 @@ final class AudioSessionController: NSObject {
     /// 平时只做一次本地 `isPlaying` 判断，开销可忽略。
     /// 重激活本身带指数退避，见 `registerActivationFailure`。
     func ensureActive() {
+        guard !compatMode else { return }
         if !sessionActive {
             guard Date() >= nextActivationAttemptAt else { return }
             guard reactivate() else { return }
@@ -212,12 +307,48 @@ final class AudioSessionController: NSObject {
             switch type {
             case .began:
                 self.sessionActive = false
-                AppLog.log("audio.interruption began")
+                // 光记"开始了"没法归因。reason 区分：1=被别的 App 抢占、
+                // 2=本 App 被系统挂起、4=内置麦克风被静音；suspended 是旧 API 的
+                // 同一件事的前身；other 表示此刻是否有别的音频在响。
+                let reason = note.userInfo?[AVAudioSessionInterruptionReasonKey] as? UInt ?? 0
+                let wasSuspended = note.userInfo?[AVAudioSessionInterruptionWasSuspendedKey] as? Bool ?? false
+                AppLog.log("audio.interruption began reason=\(reason) suspended=\(wasSuspended) "
+                           + "other=\(AVAudioSession.sharedInstance().isOtherAudioPlaying) "
+                           + "route=\(self.routeDescription)")
+                // 主模式下**第一次**被打断就认输。
+                // 这条路已经被系统判死（后续必然一路 `!res`），继续等 3 次失败
+                // 加指数退避要走 10~30 秒，用户听到的就是"头几个词全是哑的、
+                // 得自己手动推"。当场降级、当场把当前词重播一遍才是对的。
+                if !self.compatMode, !self.reportedSessionLost {
+                    self.reportedSessionLost = true
+                    AppLog.log("audio.sessionLost 首次打断即降级")
+                    self.onSessionLost?()
+                }
             case .ended:
-                AppLog.log("audio.interruption ended")
+                let options = note.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0
+                AppLog.log("audio.interruption ended options=\(options)")
                 self.ensureActive()
             @unknown default:
                 break
+            }
+        }
+        guard routeObserver == nil else { return }
+        routeObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.routeChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] note in
+            guard let self else { return }
+            let reason = note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt ?? 0
+            let stillHeadphone = self.isHeadphoneRoute
+            AppLog.log("audio.routeChange reason=\(reason) route=\(self.routeDescription) "
+                       + "active=\(self.sessionActive) headphone=\(stillHeadphone)")
+            // 主模式的前提是"有耳机"。耳机一掉 A2DP 链路就没了，音频单元回到
+            // 外放那唯一一条，接着必然 `!res`。提前降级，别等它坏掉再兜。
+            if !self.compatMode, !stillHeadphone, !self.reportedSessionLost {
+                self.reportedSessionLost = true
+                AppLog.log("audio.sessionLost 耳机断开即降级")
+                self.onSessionLost?()
             }
         }
     }
@@ -251,7 +382,7 @@ final class AudioSessionController: NSObject {
     }
 
     private func startSilentKeepAlive() {
-        guard keepAlive == nil else { return }
+        guard keepAlive == nil, !compatMode else { return }
         do {
             let player = try AVAudioPlayer(data: Self.silentWave())
             player.numberOfLoops = -1
@@ -259,10 +390,47 @@ final class AudioSessionController: NSObject {
             player.prepareToPlay()
             let ok = player.play()
             keepAlive = player
-            AppLog.log("audio.keepalive start ok=\(ok)")
+            let session = AVAudioSession.sharedInstance()
+            AppLog.log("audio.keepalive start ok=\(ok) vol=\(String(format: "%.2f", session.outputVolume)) "
+                       + "sr=\(Int(session.sampleRate)) route=\(routeDescription)")
+            // 0.5 秒后回看一次。`play()` 返回 true 只代表播放器**接受**了请求，
+            // 不代表音频单元真的在拉数据。这里看 `currentTime` 有没有走：
+            // 走了 = 渲染链路通；一直是 0 = 输出这条路根本没通，
+            // 那么 TTS 不出声、`isSpeaking` 却为真的现象就有了统一解释。
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self, weak player] in
+                guard let self, let player, self.keepAlive === player else { return }
+                AppLog.log("audio.keepalive probe playing=\(player.isPlaying) "
+                           + "t=\(String(format: "%.2f", player.currentTime)) route=\(self.routeDescription)")
+            }
         } catch {
             AppLog.log("audio.keepalive failed: \(error.localizedDescription)")
         }
+    }
+
+    /// 退出兼容模式，下一轮重新走正常路径（`activate()` 会真正 setActive）。
+    func leaveCompatibilityMode() {
+        guard compatMode else { return }
+        compatMode = false
+        activationFailures = 0
+        nextActivationAttemptAt = .distantPast
+        keepAliveFailures = 0
+        nextKeepAliveAttemptAt = .distantPast
+        AppLog.log("audio.compatMode off 下一轮试回正常路径")
+    }
+
+    /// 进入兼容模式：把自有会话整个放掉，交给合成器自己发声。
+    ///
+    /// 这不是"优化"，是**唯一能出声的路**。启用后 Now Playing 随之中断、
+    /// 耳机键失效——所以运行时降级时引擎必须给用户一句提示，不能悄悄降级；
+    /// 而 "preferred"（用户在设置里就是选的这一档）不提示，那是正常状态。
+    func enterCompatibilityMode(reason: String = "runtime") {
+        guard !compatMode else { return }
+        compatMode = true
+        stopSilentKeepAlive()
+        let session = AVAudioSession.sharedInstance()
+        try? session.setActive(false, options: [.notifyOthersOnDeactivation])
+        sessionActive = false
+        AppLog.log("audio.compatMode on reason=\(reason)（自有会话已放弃）")
     }
 
     private func stopSilentKeepAlive() {
@@ -289,9 +457,15 @@ final class AudioSessionController: NSObject {
         AppLog.log("audio.keepalive paused（省电模式）")
     }
 
-    /// 1 秒 8kHz 单声道 16bit 全零 WAV。内容是真的静音，不是把音量调 0，
+    /// 1 秒单声道 16bit 全零 WAV。内容是真的静音，不是把音量调 0，
     /// 这样会话才算"在渲染音频"，同时完全听不见。
-    private static func silentWave(seconds: Double = 1.0, sampleRate: Int = 8000) -> Data {
+    ///
+    /// 采样率用 **44.1kHz**（原来 8kHz）。8kHz 需要由播放器做一次重采样，
+    /// 在蓝牙链路上没问题，但内置扬声器这一路是否接受要打个问号——
+    /// 2026-11-25 的故障形态是"会话 setActive 成功、静音轨 play() 返回 true，
+    /// 但 TTS 从头到尾一声不响"，典型的重采样/音频单元起不来的样子。
+    /// 44.1kHz 是硬件原生速率，不需要任何转换，只多占 80KB 内存。
+    private static func silentWave(seconds: Double = 1.0, sampleRate: Int = 44100) -> Data {
         let frames = Int(Double(sampleRate) * seconds)
         let dataSize = frames * 2
         var d = Data()

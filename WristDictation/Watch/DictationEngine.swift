@@ -121,6 +121,11 @@ final class DictationEngine: ObservableObject {
     /// （没音频路由、语音包损坏），继续兜底会把整个词库一路空跳完，
     /// 所以到 3 次就停下来暂停，让用户看见。
     private var stallRecoveryCount = 0
+    /// `didCancel(unexpected)` 的连击计数：合成器自己放弃开口。
+    /// 连续三次（每次都在开口后 0.6 秒内被丢掉）就说明输出链路是死的。
+    private var cancelStreak = 0
+    /// 是否已经切到"合成器自带会话"的兼容模式。
+    private var compatMode = false
     /// 这一轮暂停是不是"退到后台"自动造成的。只有自动暂停才在回前台时自动恢复，
     /// 用户自己按的暂停不会被这条路径悄悄推翻。
     private var autoPausedForBackground = false
@@ -151,8 +156,12 @@ final class DictationEngine: ObservableObject {
             DispatchQueue.main.async {
                 // 真回调来了说明语音链路是通的，清零看门狗的连续失败计数
                 self?.stallRecoveryCount = 0
+                self?.cancelStreak = 0
                 self?.handleSpeechFinished(token)
             }
+        }
+        self.speech.onCancel = { [weak self] token in
+            DispatchQueue.main.async { self?.handleSpeechCancelled(token) }
         }
         bindRemoteCommands()
 
@@ -165,10 +174,35 @@ final class DictationEngine: ObservableObject {
         // 宁可打断这一轮，也不能让它默默跑完 50 个词。
         audio.onPersistentActivationFailure = { [weak self] in
             DispatchQueue.main.async {
-                guard let self, self.phase != .paused, self.phase != .idle else { return }
-                AppLog.log("engine.audioUnavailable 连续激活失败 → 暂停并提示")
-                self.notice = "音频被占用，已暂停。请关掉其它音频后重试"
+                guard let self, self.phase != .paused, self.phase != .idle,
+                      self.phase != .completed else { return }
+                AppLog.log("engine.audioUnavailable 连续激活失败")
+                // 先试最后一条出声的路：放弃自有会话，让合成器自己发声。
+                if self.enterCompatibilityModeIfNeeded(reason: "activate") { return }
+                self.notice = "音频被占用，已暂停。请重启手表后重试"
                 self.pause()
+            }
+        }
+
+        // 自有会话刚建立就被系统收走 / 耳机掉了：**当场**降级，不攒失败次数。
+        //
+        // 原来要等 3 次激活失败加指数退避（2/4/8 秒）才降级，用户听到的是
+        // "第一个词哑、后面几个也哑，全得自己推"。第一次打断就已经证明这条路
+        // 走不通了，没有理由再等。
+        audio.onSessionLost = { [weak self] in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                switch self.phase {
+                case .preparing, .speaking, .repeatWaiting, .nextWordWaiting, .waitingForAdvance:
+                    break
+                case .idle, .paused, .completed, .failed:
+                    return
+                }
+                AppLog.log("engine.sessionLost 立刻降级 phase=\(self.phase.rawValue)")
+                // 只有"正在念的词已经哑了"才需要重播；等待间隙降级直接换引擎，
+                // 别取消倒计时打扰节奏。
+                _ = self.enterCompatibilityModeIfNeeded(reason: "sessionLost",
+                                                        replay: self.phase == .speaking)
             }
         }
     }
@@ -233,7 +267,32 @@ final class DictationEngine: ObservableObject {
         self.playRecordIndex = [:]
         self.autoPausedForBackground = false
         self.stallRecoveryCount = 0
+        self.cancelStreak = 0
         stopSpeechWatchdog()
+        // 音频路径：按**当前音频路由**决定这一轮走哪条。
+        //
+        // 三条规则（详见 AudioSessionController.shouldUseMainSession）：
+        //   用户强制后台保活 → 主模式
+        //   有耳机           → 主模式（耳机键只有戴耳机才有意义，A2DP 是独立链路）
+        //   外放             → 兼容模式（没有耳机时耳机键本来无用，声音优先）
+        //
+        // 原来的写法是无条件 `leaveCompatibilityMode()`，于是每一轮都重新掉进
+        // 同一个坑：头几个词静音、用户手动推、攒够失败才降级。
+        let useMainSession = audio.shouldUseMainSession
+        AppLog.log("engine.audioRoute headphone=\(audio.isHeadphoneRoute) "
+                   + "mainSession=\(useMainSession) route=\(audio.routeDescription)")
+        if useMainSession {
+            if compatMode {
+                // 戴上耳机了（或用户主动要了后台保活），回主模式。
+                compatMode = false
+                audio.leaveCompatibilityMode()
+                speech.setUsesApplicationAudioSession(true)
+            }
+        } else if !compatMode {
+            compatMode = true
+            speech.setUsesApplicationAudioSession(false)
+            audio.enterCompatibilityMode(reason: "speaker")
+        }
         // 新一轮开始，上一轮答案不再保留（PRD 7.4）
         self.lastAnswerSheet = nil
 
@@ -369,6 +428,57 @@ final class DictationEngine: ObservableObject {
         }
     }
 
+    /// 合成器**自己**把这次开口丢掉了（不是我们按暂停）。
+    ///
+    /// 没有可用输出路由时它就是这个形态：不 `didStart`、不 `didFinish`，
+    /// 直接 `didCancel`。原来的实现只记一行日志就什么都不做，于是状态机
+    /// 永远停在 `.speaking`——界面不动、也不报错。现在把它当成"这次开口结束了"，
+    /// 但同时计数：连续三次说明整条输出链路是死的，停下来告诉用户。
+    private func handleSpeechCancelled(_ token: UUID) {
+        guard phase == .speaking, token == utteranceToken else { return }
+        stopSpeechWatchdog()
+        utteranceToken = nil
+
+        let elapsed = Date().timeIntervalSince(speechStartedAt)
+        if elapsed < 0.6 { cancelStreak += 1 } else { cancelStreak = 0 }
+        AppLog.log("tts.cancelled live=\(cancelStreak) elapsed=\(String(format: "%.2f", elapsed))")
+
+        if cancelStreak >= 3 {
+            cancelStreak = 0
+            if enterCompatibilityModeIfNeeded(reason: "cancel") { return }
+            AppLog.log("engine.audioUnavailable 连续取消 → 暂停并提示")
+            notice = "音频输出异常，已暂停。请重启手表后重试"
+            pause()
+            return
+        }
+        handleSpeechFinished(token)
+    }
+
+    /// 放弃自有音频会话，改用合成器自己的会话继续播。
+    ///
+    /// 只在"确认没有声音"时调用，且**一轮只调一次**。成功后这一轮会失去
+    /// Now Playing（耳机键失效），但至少能听见词——比整轮静音有价值得多。
+    ///
+    /// - Parameter replay: 是否把当前词重播一遍。正在念的那个词已经哑了，必须重播；
+    ///   而在等待间隙降级时不必打断节奏——`pause()` + `resume()` 会取消倒计时
+    ///   并把进度往回退，反而更吵。
+    @discardableResult
+    private func enterCompatibilityModeIfNeeded(reason: String, replay: Bool = true) -> Bool {
+        guard !compatMode else { return false }
+        compatMode = true
+        AppLog.log("engine.compatMode reason=\(reason) 放弃 Now Playing 换回声音")
+        speech.setUsesApplicationAudioSession(false)
+        audio.enterCompatibilityMode()
+        notice = "音频会话异常，已切换兼容模式（耳机键暂不可用）"
+        if replay {
+            // 复用已有的"整词重播"路径：pause() 会把 currentRepeat 退回去，
+            // 恢复时不会多算一次重复。
+            pause()
+            resume()
+        }
+        return true
+    }
+
     // MARK: 等待与计时
 
     private func beginWait(_ seconds: TimeInterval, purpose: WaitPurpose) {
@@ -467,6 +577,17 @@ final class DictationEngine: ObservableObject {
             // 第二段：已开口。这里的 false 才是"亮了灯不出声"。
             if self.speech.isSpeaking {
                 self.speechMissCount = 0
+                // 第二段之二：合成器**说自己**还在播，但已经很久没有任何推进。
+                //
+                // 这是 V1.6.6 及之前完全没覆盖的盲区：音频单元卡死时
+                // `isSpeaking` 永远为真，而 `didFinish` 永远不来。2026-11-25
+                // 实测第一开口卡了 14 秒以上，界面停在第一个词不动，
+                // 用户只能手动按下一首。判据换成"有没有进展"就不再看它的自述。
+                let sinceProgress = Date().timeIntervalSince(self.speech.lastProgressAt)
+                if sinceProgress >= self.speechProgressTimeout() {
+                    self.recoverStalledSpeech(token,
+                        reason: "no-progress since=\(String(format: "%.1f", sinceProgress))")
+                }
                 return
             }
             self.speechMissCount += 1
@@ -479,13 +600,29 @@ final class DictationEngine: ObservableObject {
         speechWatchdog = timer
     }
 
+    /// 允许"开口之后多久完全没有推进"。
+    ///
+    /// 只在 `willSpeakRange` 一点都没回调时才计时，正常朗读秒级就有进展，
+    /// 所以这个阈值不会误伤慢速朗读，只用来抓"卡死不往前走"。
+    /// 词条本身很短（大多 1~4 字），长词按 1.5 秒/字补余量。
+    private func speechProgressTimeout() -> TimeInterval {
+        let chars = queue.indices.contains(currentIndex)
+            ? Double(queue[currentIndex].text.count) : 2
+        return 12 + max(0, chars - 4) * 1.5
+    }
+
     /// 看门狗判定合成器已死时的统一善后。
     ///
     /// 连续 3 次兜底就停下来暂停：说明整条语音链路坏了（没有音频路由、
     /// 语音包损坏），继续兜底等于把整个词库一路空跳完，用户什么也不会听到。
+    /// 第一次先尝试切兼容模式（合成器自带会话），成了这一轮还能继续听。
     private func recoverStalledSpeech(_ token: UUID, reason: String) {
         stopSpeechWatchdog()
         stallRecoveryCount += 1
+        if stallRecoveryCount == 1, !compatMode {
+            AppLog.log("tts.stalled \(reason) → 切换兼容模式重试")
+            if enterCompatibilityModeIfNeeded(reason: "stalled") { return }
+        }
         if stallRecoveryCount >= 3 {
             AppLog.log("tts.stalled \(reason) 连续 3 次，判定语音不可用 → 暂停")
             notice = "语音无法播放，已暂停"

@@ -4,7 +4,7 @@
 
 iPhone 负责编词库，Apple Watch 负责**完全离线**地把词念出来。你只需要抬腕、听、写。
 
-纯原生 Swift / SwiftUI，零第三方依赖。iOS 17+ / watchOS 10+。当前版本 **1.6.6**。
+纯原生 Swift / SwiftUI，零第三方依赖。iOS 17+ / watchOS 10+。当前版本 **1.7.0**。
 
 > **注意**：目前只在 **Apple Watch Ultra 2 + iPhone 15 Pro Max** 上做过真机验证，其它机型未实测，详见[兼容性](#兼容性)。
 
@@ -300,7 +300,7 @@ python3 Tools/gen_project.py
 | 文件 | 内容 |
 |---|---|
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 数据流、状态机、同步协议、快照一致性 |
-| [docs/PITFALLS.md](docs/PITFALLS.md) | **watchOS 上踩过的 11 个坑**，每条都带真机日志证据。想写手表音频/耳机键的人建议先读 |
+| [docs/PITFALLS.md](docs/PITFALLS.md) | **watchOS 上踩过的 12 个坑**，每条都带真机日志证据。想写手表音频/耳机键的人建议先读 |
 | [docs/INSTALL.md](docs/INSTALL.md) | 装机与排查：签名、安装、拉日志 |
 | [docs/PRD-v1.2.md](docs/PRD-v1.2.md) | 最初的产品需求文档，保留设计取舍的来龙去脉 |
 | [CHANGELOG.md](CHANGELOG.md) | 每个版本只解决一件事 |
@@ -315,8 +315,9 @@ python3 Tools/gen_project.py
 2. **后台不播报。** `AVSpeechSynthesizer` 在后台只回调 `didStart`，不出声也不回调 `didFinish`。所以离开 App 就暂停，回来再接上
 3. **免费账号 7 天签名**，到期重装。覆盖安装保留词库和进度
 4. **省电模式会牺牲间隔期的耳机键。** 打开后间隔期停掉静音轨，省电但耳机键可能不响应。默认关闭
-5. **词库不内置。** 3500 字表请自行导入——版权和版本都该由你决定
-6. **模拟器验不了核心链路。** 耳机键、双指互点、真实 TTS 路由都只在真机上成立
+5. **外放时没有耳机键，这是设计而非缺陷。** 扬声器路由只有一条音频单元，静音保活轨会和合成器抢资源、抢输就整轮静音（`!res`）。所以外放走合成器自带会话（一定有声音），戴耳机才启用自有会话 + Now Playing（耳机键可用）。想强制走后者，在手表「播报设置 > 播放引擎 > 后台保活」里打开
+6. **词库不内置。** 3500 字表请自行导入——版权和版本都该由你决定
+7. **模拟器验不了核心链路。** 耳机键、双指互点、真实 TTS 路由都只在真机上成立
 
 ---
 
@@ -326,6 +327,7 @@ python3 Tools/gen_project.py
 
 - `AVAudioSession` 加 `.duckOthers` 会隐式带上 `MixWithOthers`，会话永远成不了 Now Playing，耳机命令**一条都收不到**
 - watchOS 靠"有没有音频在渲染"判断播放状态。要耳机键常驻，就得有一条 8kHz 全零 WAV 循环播放
+- 同一条静音轨在**外放时会翻车**：外放只有一条音频单元，保活轨和合成器抢，抢输就是 `-561145203`（`!res`，硬件资源不足），此后 `setActive` 永远失败、App 侧救不回来。**按路由分工**才是正解
 - 暂停后系统投递的仍然是 `pauseCommand`。**看状态，不要看命令名**
 - 合成器能在没有输出路由的会话上"播完"并正常回调 `didFinish`——**进度条在走不等于有声音**
 - 音频会话激活失败后直接重试没用，必须先 `setActive(false)` 硬重置

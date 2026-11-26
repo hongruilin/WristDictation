@@ -167,6 +167,10 @@ struct WatchSpeechSettingsView: View {
     @State private var voices: [SpeechVoice] = []
     @State private var selectedVoice: String = ""
     @State private var rate: Double = 0.45
+    /// 反向显示 `AudioSessionController.prefersCompatibility`：
+    /// 打开 = 走自有会话（后台常驻 / 耳机键），关闭 = 兼容模式（声音最稳）。
+    /// 默认关闭，因为这一档才保证听得见。
+    @State private var backgroundKeepAlive = false
 
     private var global: ParameterLayer { store.settings.global }
     private var repeatCount: Int { max(1, min(5, global.repeatCount ?? 2)) }
@@ -234,6 +238,24 @@ struct WatchSpeechSettingsView: View {
                 }
 
                 Section {
+                    Toggle("后台保活", isOn: Binding(
+                        get: { backgroundKeepAlive },
+                        set: { newValue in
+                            backgroundKeepAlive = newValue
+                            // 反向映射：打开"后台保活"= 不要兼容模式 = 走自有会话。
+                            AudioSessionController.prefersCompatibility = !newValue
+                        }
+                    ))
+                } header: {
+                    Text("播放引擎")
+                } footer: {
+                    Text(backgroundKeepAlive
+                         ? "正在用自有音频会话：可后台常驻、耳机键可用，但本机可能完全没声音。下一轮生效。"
+                         : "用系统自带会话发音，声音最稳。代价是耳机键失效，熄屏后可能停下。下一轮生效。")
+                        .font(.caption2)
+                }
+
+                Section {
                     if let date = store.lastSyncAt {
                         HStack {
                             Text("上次同步")
@@ -268,6 +290,7 @@ struct WatchSpeechSettingsView: View {
         voices = SystemSpeechService.availableSystemVoices()
         selectedVoice = store.settings.voiceIdentifier ?? ""
         rate = store.settings.speechRate
+        backgroundKeepAlive = !AudioSessionController.prefersCompatibility
     }
 
     private func setRepeat(_ value: Int) {

@@ -43,6 +43,44 @@ player.play()
 
 这不是省电的写法——它让音频管线和蓝牙链路一直醒着，占这个 App 六七成的耗电。但**去掉它，耳机键立刻失效**。
 
+#### 例外：外放时"持续渲染"会和合成器抢音频单元
+
+上面这条在**戴耳机**时成立，**外放时会翻车**。
+
+外放路由（`currentRoute.outputs == Speaker`）只有一条音频单元，而你需要两个消费者：
+自己的静音保活轨，和要开口的 `AVSpeechSynthesizer`。抢不到的那个会让整个会话被系统收走：
+
+```
+audio.activate ok route=Speaker          ← setActive 报成功（假的）
+audio.keepalive start ok=true            ← play() 返回 true（也是假的）
+audio.keepalive probe playing=true t=0.47 ← currentTime 在走（还是假的）
+tts.didStart
++0.8s  audio.interruption began
++8.3s  audio.reactivate failed code=561145203
+       audio.hardReset failed code=561145203
+```
+
+`-561145203` 是 `'!res'`（`AVAudioSessionErrorCodeResourceNotAvailable`，**硬件资源不足**），
+不是权限问题。它出现之后，`setActive(false)` + 重建 category 同样失败——**App 侧救不回来**。
+而 TTS 全程 `didStart`、按内部时钟走完，用户听到的是彻底的安静。
+
+**判别只看路由**：`Speaker` → 让合成器用自己的会话
+（`usesApplicationAudioSession = false`），不建静音轨；`BluetoothA2DP` / `HFP` → 独立链路，
+两个消费者能共存，静音轨照常播、耳机键照常可用。
+
+**这不是降级，是按路由分工**：外放时用户没戴耳机，耳机键本来就没有意义，声音优先；
+戴耳机时才需要 Now Playing。所以别把"兼容模式"写成永久开关，写成路由判断：
+
+```swift
+var shouldUseMainSession: Bool {
+    !userForcedMainSession || isHeadphoneRoute
+}
+```
+
+另附一个坑：主模式下**第一次**收到 `interruption began` 就该当场降级并重播当前词。
+等它攒够 3 次激活失败再走 2/4/8 秒退避，要拖 10~30 秒，用户感受是
+「头几个词全是哑的，得自己一个个手动推过去」。
+
 ### 3. transport 命令要看状态，不要看命令名
 
 最反直觉的一条。

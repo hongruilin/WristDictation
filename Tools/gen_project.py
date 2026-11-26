@@ -22,17 +22,13 @@ WATCH_TARGET = "WristDictationWatch"
 # 版本号。**升版只改这两个常量**，脚本会把它们写进 pbxproj 的全部配置。
 # 之前这里硬编码成 1.0 / 1，导致每次重跑脚本都把版本号退回去，
 # 手机端「最近通信」显示的版本随之倒退，排查时极易误判成"装的还是旧包"。
-APP_MARKETING_VERSION = "1.6.6"
-APP_BUILD_VERSION = "16"
+APP_MARKETING_VERSION = "1.7.0"
+APP_BUILD_VERSION = "20"
 
-# 签名团队。留空则由 Xcode 的 Signing & Capabilities 决定（首次打开时选一次即可）。
-# 命令行构建（CI / 脚本）可以这样临时指定，不必写进仓库：
-#     WD_TEAM_ID=ABCDE12345 python3 Tools/gen_project.py
-# 注意：pbxproj 里一旦写了空的 DEVELOPMENT_TEAM = ;，Xcode 会当成"未选择团队"，
-# 这是符合预期的；但如果你的账号下只有一个团队，Xcode 通常会自动补上。
+# 签名团队。pbxproj 里**必须**有这一项，否则命令行构建直接报
+# "requires a development team"。侧载用的是淘宝那份个人开发者证书。
+# 之前这一项只存在于手工改过的 pbxproj 里，一重跑脚本就丢。
 DEVELOPMENT_TEAM_ID = os.environ.get("WD_TEAM_ID", "").strip()
-TEAM_SETTING = (f"\t\t\t\tDEVELOPMENT_TEAM = {DEVELOPMENT_TEAM_ID};\n"
-                if DEVELOPMENT_TEAM_ID else "")
 
 # watchOS App 的产品类型。
 # 说明：Xcode 27 的 watchapp2 产品类型带有 thin-stub 二进制机制
@@ -464,7 +460,8 @@ def main():
     ios_settings = f"""
 \t\t\t\tCODE_SIGN_STYLE = Automatic;
 \t\t\t\tCURRENT_PROJECT_VERSION = {APP_BUILD_VERSION};
-{TEAM_SETTING}\t\t\t\tGENERATE_INFOPLIST_FILE = NO;
+\t\t\t\tDEVELOPMENT_TEAM = {DEVELOPMENT_TEAM_ID};
+\t\t\t\tGENERATE_INFOPLIST_FILE = NO;
 \t\t\t\tINFOPLIST_FILE = WristDictation/Config/iOS-Info.plist;
 \t\t\t\tIPHONEOS_DEPLOYMENT_TARGET = 17.0;
 \t\t\t\tLD_RUNPATH_SEARCH_PATHS = (
@@ -486,7 +483,8 @@ def main():
     watch_settings = f"""
 \t\t\t\tCODE_SIGN_STYLE = Automatic;
 \t\t\t\tCURRENT_PROJECT_VERSION = {APP_BUILD_VERSION};
-{TEAM_SETTING}\t\t\t\tGENERATE_INFOPLIST_FILE = NO;
+\t\t\t\tDEVELOPMENT_TEAM = {DEVELOPMENT_TEAM_ID};
+\t\t\t\tGENERATE_INFOPLIST_FILE = NO;
 \t\t\t\tINFOPLIST_FILE = WristDictation/Config/Watch-Info.plist;
 \t\t\t\tLD_RUNPATH_SEARCH_PATHS = (
 \t\t\t\t\t"$(inherited)",

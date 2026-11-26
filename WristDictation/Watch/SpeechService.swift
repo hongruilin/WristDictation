@@ -8,6 +8,18 @@ import AVFoundation
 /// 引擎与界面不感知。
 protocol SpeechService: AnyObject {
     var onFinish: ((UUID) -> Void)? { get set }
+    /// 合成器**自己**把这次开口丢掉了（不是我们调 `stop()`）。
+    ///
+    /// 没有可用输出路由时它就是这样：既不 `didStart` 也不 `didFinish`，
+    /// 直接 `didCancel`。引擎据此判断"整条输出链路是死的"，
+    /// 而不是把它当成播完继续往下翻词。
+    var onCancel: ((UUID) -> Void)? { get set }
+    /// 本次开口**最近一次真的往前推进**的时刻（`didStart` 或逐段朗读回调）。
+    ///
+    /// 看门狗的第二道判据：`isSpeaking` 只代表合成器内部状态是 speaking，
+    /// 音频单元没在拉数据时它照样为真。2026-11-25 实测第一开口就卡死 14 秒、
+    /// 界面停在第一个词不动，而 `isSpeaking` 始终为真——只看它永远发现不了。
+    var lastProgressAt: Date { get }
     /// 合成器是否真的在出声（或处于系统暂停）。
     ///
     /// 存在的唯一理由是给引擎做**看门狗**：`AVSpeechSynthesizer` 在
@@ -30,6 +42,12 @@ protocol SpeechService: AnyObject {
     func speak(_ text: String, rate: Float, voiceIdentifier: String?) -> UUID
     func stop()
     func availableVoices() -> [SpeechVoice]
+    /// 是否让合成器走 App 自己的音频会话。
+    ///
+    /// 默认 `true`——只有这样本 App 才会成为 Now Playing，耳机按键才收得到命令。
+    /// 置 `false` 是**兜底**：App 的会话彻底激活不起来时，让合成器自带会话发声，
+    /// 至少还能听见词（代价是耳机键失效）。
+    func setUsesApplicationAudioSession(_ enabled: Bool)
 }
 
 // MARK: - 系统 TTS 实现
@@ -42,7 +60,18 @@ final class SystemSpeechService: NSObject, SpeechService, AVSpeechSynthesizerDel
     /// 供看门狗判断"是还没开口"还是"开了口不出声"。
     private var startedToken: UUID?
 
+    /// 当前这条 utterance 的**对象身份**。
+    ///
+    /// 委托回调不携带 token，只能靠身份判断回调属于哪一次开口。原来的写法
+    /// 一律拿 `currentToken`，于是"上一条被新 speak 顶掉后迟到的 `didFinish`"
+    /// 会被算到**新 token**头上——状态机以为新词已经念完，直接翻页。
+    /// 2026-11-25 实测：13 个词在几秒内翻完、一个声音都没有，
+    /// 日志里全是 `didCancel(unexpected)` + 同毫秒的 `didFinish`。
+    private var currentUtterance: AVSpeechUtterance?
+    private var progressAt = Date.distantPast
+
     var onFinish: ((UUID) -> Void)?
+    var onCancel: ((UUID) -> Void)?
 
     /// `isPaused` 也算"活着"：系统级暂停（来电、Siri 抢占）时合成器不推进，
     /// 但它并没有死，硬判成"播完"会跳词。只有两者都为假才是真的没在跑。
@@ -54,6 +83,8 @@ final class SystemSpeechService: NSObject, SpeechService, AVSpeechSynthesizerDel
         startedToken != nil && startedToken == currentToken
     }
 
+    var lastProgressAt: Date { progressAt }
+
     override init() {
         super.init()
         synthesizer.delegate = self
@@ -61,6 +92,12 @@ final class SystemSpeechService: NSObject, SpeechService, AVSpeechSynthesizerDel
         // 否则它内部另起一个会话，我们这个 App 就永远不会成为 Now Playing，
         // 耳机按键也就收不到。
         synthesizer.usesApplicationAudioSession = true
+    }
+
+    func setUsesApplicationAudioSession(_ enabled: Bool) {
+        guard synthesizer.usesApplicationAudioSession != enabled else { return }
+        synthesizer.usesApplicationAudioSession = enabled
+        AppLog.log("tts.applicationSession=\(enabled)")
     }
 
     func speak(_ text: String, rate: Float, voiceIdentifier: String?) -> UUID {
@@ -72,6 +109,9 @@ final class SystemSpeechService: NSObject, SpeechService, AVSpeechSynthesizerDel
         let token = UUID()
         currentToken = token
         startedToken = nil
+        // 从"请求开口"这一刻起算：看门狗用它测"多久没有任何推进"，
+        // 因此必须在这里重置，不能等 didStart。
+        progressAt = Date()
 
         let utterance = AVSpeechUtterance(string: text)
         utterance.rate = min(max(rate, AVSpeechUtteranceMinimumSpeechRate),
@@ -87,6 +127,7 @@ final class SystemSpeechService: NSObject, SpeechService, AVSpeechSynthesizerDel
             utterance.voice = voice
         }
 
+        currentUtterance = utterance
         synthesizer.speak(utterance)
         return token
     }
@@ -95,6 +136,8 @@ final class SystemSpeechService: NSObject, SpeechService, AVSpeechSynthesizerDel
         stoppedToken = currentToken
         currentToken = nil
         startedToken = nil
+        // 置空身份：stop 之后到达的回调一律按"陈旧"处理，绝不能推进状态机。
+        currentUtterance = nil
         if synthesizer.isSpeaking || synthesizer.isPaused {
             synthesizer.stopSpeaking(at: .immediate)
         }
@@ -144,7 +187,13 @@ final class SystemSpeechService: NSObject, SpeechService, AVSpeechSynthesizerDel
     // MARK: AVSpeechSynthesizerDelegate
 
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        guard let token = currentToken else { return }
+        // 只认**当前这条** utterance。迟到的上一条回调一律丢弃，
+        // 否则新词会被凭空判定为"已播完"（见 currentUtterance 的注释）。
+        guard utterance === currentUtterance, let token = currentToken else {
+            AppLog.log("tts.didFinish(stale)")
+            return
+        }
+        currentUtterance = nil
         currentToken = nil
         startedToken = nil
         AppLog.log("tts.didFinish \(token.uuidString.prefix(8))")
@@ -153,18 +202,43 @@ final class SystemSpeechService: NSObject, SpeechService, AVSpeechSynthesizerDel
 
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
         // 主动 stop 触发的取消不回调，避免被当成"播报完成"而误推进状态机。
-        if let stopped = stoppedToken {
-            AppLog.log("tts.didCancel(stopped) \(stopped.uuidString.prefix(8))")
-            stoppedToken = nil
-        } else {
-            AppLog.log("tts.didCancel(unexpected)")
+        guard utterance === currentUtterance, let token = currentToken else {
+            if let stopped = stoppedToken {
+                AppLog.log("tts.didCancel(stopped) \(stopped.uuidString.prefix(8))")
+                stoppedToken = nil
+            } else {
+                AppLog.log("tts.didCancel(stale)")
+            }
+            return
         }
+        // 不是我们停的：合成器**自己放弃**了这次开口。没有可用输出路由时就是这样，
+        // 必须让引擎知道，不能像原来那样只记一行日志然后让状态机永远等下去。
+        currentUtterance = nil
+        currentToken = nil
+        startedToken = nil
+        AppLog.log("tts.didCancel(unexpected) \(token.uuidString.prefix(8))")
+        onCancel?(token)
     }
 
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
-        if let token = currentToken {
-            startedToken = token
-            AppLog.log("tts.didStart \(token.uuidString.prefix(8))")
+        guard utterance === currentUtterance, let token = currentToken else { return }
+        startedToken = token
+        progressAt = Date()
+        AppLog.log("tts.didStart \(token.uuidString.prefix(8))")
+    }
+
+    /// 逐段朗读回调 = 语音真的在往前走。
+    ///
+    /// 这是看门狗唯一可靠的"有进展"信号：`isSpeaking` 在音频单元卡死时仍为真，
+    /// 而只要能念出一个字，这里就会被调用。日志做 2 秒节流，别把文件刷爆。
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer,
+                           willSpeakRangeOfSpeechString characterRange: NSRange,
+                           utterance: AVSpeechUtterance) {
+        guard utterance === currentUtterance else { return }
+        let gap = Date().timeIntervalSince(progressAt)
+        progressAt = Date()
+        if gap > 2 {
+            AppLog.log("tts.progress at=\(characterRange.location)")
         }
     }
 }

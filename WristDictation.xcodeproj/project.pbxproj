@@ -399,7 +399,8 @@
 			baseConfigurationReference = 7514D8840598FE686EE1772A /* Shared.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 20;
+				DEVELOPMENT_TEAM = ;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = WristDictation/Config/iOS-Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -408,7 +409,7 @@
 					"@executable_path/Frameworks",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -disable-sandbox";
-				MARKETING_VERSION = 1.6.6;
+				MARKETING_VERSION = 1.7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -423,7 +424,8 @@
 			baseConfigurationReference = 7514D8840598FE686EE1772A /* Shared.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 20;
+				DEVELOPMENT_TEAM = ;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = WristDictation/Config/iOS-Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -432,7 +434,7 @@
 					"@executable_path/Frameworks",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -disable-sandbox";
-				MARKETING_VERSION = 1.6.6;
+				MARKETING_VERSION = 1.7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -447,7 +449,8 @@
 			baseConfigurationReference = 7514D8840598FE686EE1772A /* Shared.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 20;
+				DEVELOPMENT_TEAM = ;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = WristDictation/Config/Watch-Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -455,7 +458,7 @@
 					"@executable_path/Frameworks",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -disable-sandbox";
-				MARKETING_VERSION = 1.6.6;
+				MARKETING_VERSION = 1.7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID).watchkitapp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -472,7 +475,8 @@
 			baseConfigurationReference = 7514D8840598FE686EE1772A /* Shared.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 20;
+				DEVELOPMENT_TEAM = ;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = WristDictation/Config/Watch-Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -480,7 +484,7 @@
 					"@executable_path/Frameworks",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -disable-sandbox";
-				MARKETING_VERSION = 1.6.6;
+				MARKETING_VERSION = 1.7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID).watchkitapp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
